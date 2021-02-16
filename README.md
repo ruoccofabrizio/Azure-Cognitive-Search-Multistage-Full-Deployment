@@ -1,0 +1,1 @@
+# Azure-Cognitive-Search-Multistage-Full-Deployment
