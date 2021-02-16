@@ -1,0 +1,130 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Dev
+  variables: 
+    RESOURCE_GROUP: $(DEV_RESOURCE_GROUP)
+    SERVICE_NAME: $(DEV_SERVICE_NAME)
+    credentials.connectionString : $(DEV_CONNECTION_STRING) 
+    cognitiveServices.key: $(DEV_COGNITIVE_SERVICES_KEY)
+  jobs:
+  - job: deployment
+    displayName: Deployment
+    steps:
+    - task: FileTransform@1
+      displayName: Replace connection string
+      inputs:
+        folderPath: '$(System.DefaultWorkingDirectory)'
+        fileType: 'json'
+        targetFiles: |
+          datasource.json
+          skillset.json
+    - task: AzureCLI@2
+      displayName: Deploy Azure Cognitive Search artifacts
+      inputs:
+        azureSubscription: Microsoft Azure Subscription
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          API_KEY=$(az search admin-key show --resource-group $(RESOURCE_GROUP) --service-name $(SERVICE_NAME) --query primaryKey -o tsv)
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/datasources/$(DATA_SOURCE)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @datasource.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexes/$(INDEX_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @index.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
+
+- stage: Test
+  variables: 
+    RESOURCE_GROUP: $(TEST_RESOURCE_GROUP)
+    SERVICE_NAME: $(TEST_SERVICE_NAME)
+    credentials.connectionString : $(TEST_CONNECTION_STRING) 
+    cognitiveServices.key: $(TEST_COGNITIVE_SERVICES_KEY)
+  jobs:
+  - job: approvalTest
+    displayName: Approval
+    pool: server
+    timeoutInMinutes: 4320
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440
+      inputs:
+        instructions: 'Please confirm TEST deployment'
+        notifyUsers:  |
+          USER@DOMAIN.com
+        onTimeout: 'reject'
+  - job: deployTest
+    displayName: Deploy
+    dependsOn: approvalTest
+    steps:
+    - task: FileTransform@1
+      displayName: Replace connection string
+      inputs:
+        folderPath: '$(System.DefaultWorkingDirectory)'
+        fileType: 'json'
+        targetFiles: |
+          datasource.json
+          skillset.json
+    - task: AzureCLI@2
+      displayName: Deploy Azure Cognitive Search artifacts
+      inputs:
+        azureSubscription: Microsoft Azure Subscription
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          API_KEY=$(az search admin-key show --resource-group $(RESOURCE_GROUP) --service-name $(SERVICE_NAME) --query primaryKey -o tsv)
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/datasources/$(DATA_SOURCE)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @datasource.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexes/$(INDEX_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @index.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
+
+- stage: Prod
+  variables: 
+    RESOURCE_GROUP: $(PROD_RESOURCE_GROUP)
+    SERVICE_NAME: $(PROD_SERVICE_NAME)
+    credentials.connectionString : $(PROD_CONNECTION_STRING) 
+    cognitiveServices.key: $(PROD_COGNITIVE_SERVICES_KEY)
+  jobs:
+  - job: approvalProd
+    displayName: Approval
+    pool: server
+    timeoutInMinutes: 4320
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440
+      inputs:
+        instructions: 'Please confirm PROD deployment'
+        notifyUsers:  |
+          USER@DOMAIN.com
+        onTimeout: 'reject'
+  - job: deployProd
+    displayName: Deploy
+    dependsOn: approvalProd
+    steps:
+    - task: FileTransform@1
+      displayName: Replace connection string
+      inputs:
+        folderPath: '$(System.DefaultWorkingDirectory)'
+        fileType: 'json'
+        targetFiles: |
+          datasource.json
+          skillset.json
+    - task: AzureCLI@2
+      displayName: Deploy Azure Cognitive Search artifacts
+      inputs:
+        azureSubscription: Microsoft Azure Subscription
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          API_KEY=$(az search admin-key show --resource-group $(RESOURCE_GROUP) --service-name $(SERVICE_NAME) --query primaryKey -o tsv)
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/datasources/$(DATA_SOURCE)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @datasource.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexes/$(INDEX_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @index.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
+          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
