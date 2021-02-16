@@ -38,8 +38,8 @@ stages:
           API_KEY=$(az search admin-key show --resource-group $(RESOURCE_GROUP) --service-name $(SERVICE_NAME) --query primaryKey -o tsv)
           az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/datasources/$(DATA_SOURCE)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @datasource.json
           az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexes/$(INDEX_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @index.json
-          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
-          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
+          [  -z "$(INDEXER_NAME)" ] && echo 'Skipping indexer deployment' || az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
+          [  -z "$(SKILLSET_NAME)" ] && echo 'Skipping skillset deployment' ||az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
 
 - stage: Test
   variables: 
@@ -82,8 +82,8 @@ stages:
           API_KEY=$(az search admin-key show --resource-group $(RESOURCE_GROUP) --service-name $(SERVICE_NAME) --query primaryKey -o tsv)
           az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/datasources/$(DATA_SOURCE)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @datasource.json
           az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexes/$(INDEX_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @index.json
-          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
-          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
+          [  -z "$(INDEXER_NAME)" ] && echo 'Skipping indexer deployment' || az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
+          [  -z "$(SKILLSET_NAME)" ] && echo 'Skipping skillset deployment' ||az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
 
 - stage: Prod
   variables: 
@@ -126,5 +126,5 @@ stages:
           API_KEY=$(az search admin-key show --resource-group $(RESOURCE_GROUP) --service-name $(SERVICE_NAME) --query primaryKey -o tsv)
           az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/datasources/$(DATA_SOURCE)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @datasource.json
           az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexes/$(INDEX_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @index.json
-          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
-          az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
+          [  -z "$(INDEXER_NAME)" ] && echo 'Skipping indexer deployment' || az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/indexers/$(INDEXER_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @indexer.json
+          [  -z "$(SKILLSET_NAME)" ] && echo 'Skipping skillset deployment' ||az rest --method PUT --uri https://$(SERVICE_NAME).search.windows.net/skillsets/$(SKILLSET_NAME)?api-version=$(API_VERSION) --headers Content-Type=application/json api-key=$API_KEY --body @skillset.json
