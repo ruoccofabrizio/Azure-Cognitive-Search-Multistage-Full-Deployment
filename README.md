@@ -11,7 +11,7 @@ The scripts creates specified artifacts or updates existing resources. Field rem
 | Azure DevOps Variable                          | Value                                                      | Note                                           |
 |------------------------------------------------|---------------------------------------------------------|------------------------------------------|
 | --ENV_RESOURCE_GROUP          			| Azure Cognitive Search Resource Group              								 | Required					    |
-| --DEV_SERVICE_NAME      			| Azure Cognitive Search Service  								 | Required                        |
+| --ENV_SERVICE_NAME      			| Azure Cognitive Search Service  								 | Required                        |
 | --ENV_CONNECTION_STRING            			| Connection string to the datasource to be created			 | Required|
 | --ENV_COGNITIVE_SERVICES_KEY          			| Cognitive Services key for content enrichment | Required if using Skillset with Cognitive Services|
 | --DATA_SOURCE      			| Data source for Azure Cognitive Search processing  								 | Required |
